@@ -15,6 +15,19 @@ ProfileType = tuple[str, FreqDictType, int]
 
 
 def tokenize(text: str) -> Sequence[str] | None:
+    """
+    Splits a text into tokens, converts the tokens into lowercase,
+    removes punctuation and other symbols from words
+
+    Args:
+       text (str): Text
+
+    Returns:
+        Sequence[str] | None: Sequence of lower-cased tokens without punctuation.
+        Returns None if input text is not a string.
+    """
+
+
     if not isinstance(text, str):
         return None
 
@@ -32,18 +45,29 @@ def tokenize(text: str) -> Sequence[str] | None:
 
 
 def remove_stop_words(tokens: Sequence[str], stop_words: Sequence[str]) -> Sequence[str] | None:
-    if not isinstance(tokens, (list, tuple)):
-       return None
-    for token in tokens:
-        if not isinstance(token, str):
-            return None
+    """
+    Removes stop words
 
-    if not isinstance(stop_words, (list, tuple)):
-        return tokens
+    Args:
+        tokens (Sequence[str]): Sequence of tokens
+        stop_words (Sequence[str]): Sequence of stop words (can be empty)
+    Returns:
+        Sequence[str] | None: Sequence of tokens without stop words.
+        Returns None in case of incorrect input types.
+    """
 
-    for word in stop_words:
-        if not isinstance(word, str):
-            return tokens
+
+    if not isinstance(tokens, Sequence) or isinstance(tokens, str):
+        return None
+
+    if not all(isinstance(token, str) for token in tokens):
+        return None
+
+    if not isinstance(stop_words, Sequence) or isinstance(stop_words, str):
+        return None
+
+    if not all(isinstance(word, str) for word in stop_words):
+        return None
 
     tokens_without_stop_words = []
     for token in tokens:
@@ -53,27 +77,49 @@ def remove_stop_words(tokens: Sequence[str], stop_words: Sequence[str]) -> Seque
 
 
 def calculate_frequencies(tokens: Sequence[str]) -> dict[str, float] | None:
-    if tokens is None:
+    """
+    Calculates frequencies of given tokens
+
+    Args:
+        tokens (Sequence[str]): Sequence of tokens
+    Returns:
+        dict[str, float] | None: Dictionary with frequencies.
+        Returns None in case of incorrect input types.
+    """
+
+
+    if not isinstance(tokens, Sequence) or isinstance(tokens, str):
+        return None
+
+    if not all(isinstance(token, str) for token in tokens):
         return None
 
     length = len(tokens)
     if length == 0:
         return {}
 
-    general_freq = {}
-    for token in tokens:
-        if token in general_freq:
-            general_freq[token] += 1
-        else:
-            general_freq[token] = 1
-
     freq = {}
-    for key in general_freq:
-        freq[key] = general_freq[key] / length
+    for token in tokens:
+        if token not in freq:
+            freq[token] = 0
+        freq[token] += 1 / length
+
     return freq
 
-
 def get_top_n_words(freq_dict: dict[str, float], top_n: int) -> Sequence[str] | None:
+    """
+    Finds the most common words
+
+    Args:
+        freq_dict (dict[str, float]): Dictionary with frequencies
+        top_n (int): Number of the most common words
+
+    Returns:
+        Sequence[str] | None: Sequence of the most common words.
+        Returns None in case of incorrect input types or non-positive top_n.
+    """
+
+
     if not isinstance(top_n, int):
         return None
     if top_n <= 0:
@@ -107,6 +153,31 @@ def create_language_profile(
     """
 
 
+    if not isinstance(language, str):
+        return None
+    if not isinstance(text, str):
+        return None
+    if not isinstance(stop_words, Sequence) or isinstance(stop_words, str):
+        return None
+
+    tokens = tokenize(text)
+    if tokens is None:
+        return None
+
+    tokens = remove_stop_words(tokens, stop_words)
+    if tokens is None:
+        return None
+
+    freq = calculate_frequencies(tokens)
+    if freq is None:
+        return None
+
+    n_words = len(freq)
+    profile = (language, freq, n_words)
+
+    return profile
+
+
 def check_profile(profile: ProfileType) -> bool:
     """
     Checks profile structure
@@ -118,6 +189,23 @@ def check_profile(profile: ProfileType) -> bool:
         bool: Returns True if the profile has right structure and types,
         otherwise returns False.
     """
+
+
+    if not isinstance(profile, tuple) or len(profile) != 3:
+        return False
+
+    language, freq, n_words = profile
+    if (not isinstance(language, str)
+        or not isinstance(freq, dict)
+        or not isinstance(n_words, int)):
+        return False
+
+    if (not all(isinstance(key, str) and isinstance(value, float)
+                for key, value in freq.items()) or
+                n_words != len(freq)):
+        return False
+
+    return True
 
 
 def compare_profiles_by_top_n(
@@ -134,6 +222,9 @@ def compare_profiles_by_top_n(
         float | None: The distance between profiles.
         Returns None in case of incorrect input types.
     """
+
+
+
 
 
 def detect_language_by_top_n(
