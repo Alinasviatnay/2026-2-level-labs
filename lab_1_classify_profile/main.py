@@ -224,7 +224,25 @@ def compare_profiles_by_top_n(
     """
 
 
+    if not all(check_profile(p) for p in (unknown_profile, profile_to_compare)):
+        return None
 
+    if not isinstance(top_n, int) or top_n <= 0:
+        return None
+
+    unknown_profile_top_n = get_top_n_words(unknown_profile[1], top_n)
+    profile_to_compare_top_n = get_top_n_words(profile_to_compare[1], top_n)
+
+    if unknown_profile_top_n is None or profile_to_compare_top_n is None:
+        return None
+    if len(unknown_profile_top_n) == 0:
+        return None
+
+    unknown_set = set(unknown_profile_top_n)
+    language_set = set(profile_to_compare_top_n)
+    intersaction = unknown_set & language_set
+
+    return len(intersaction) / len(unknown_profile_top_n)
 
 
 def detect_language_by_top_n(
@@ -243,6 +261,7 @@ def detect_language_by_top_n(
         str | None: Unknown profile language.
         Returns None in case of incorrect input types.
     """
+
 
 
 # Mark 8
