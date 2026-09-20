@@ -263,6 +263,32 @@ def detect_language_by_top_n(
     """
 
 
+    if not all(check_profile(p) for p in (unknown_profile,
+                                          profile_1,
+                                          profile_2)):
+        return None
+
+    if not isinstance(top_n, int) or top_n <= 0:
+        return None
+
+    lang_name_1 = profile_1[0]
+    lang_name_2 = profile_2[0]
+
+    score_1 = compare_profiles_by_top_n(unknown_profile,
+                                        profile_1, top_n)
+    score_2 = compare_profiles_by_top_n(unknown_profile,
+                                        profile_2, top_n)
+
+    if score_1 is None or score_2 is None:
+        return None
+
+    if score_1 > score_2:
+        return lang_name_1
+    elif score_2 > score_1:
+        return lang_name_2
+    else:
+        return min(lang_name_1, lang_name_2)
+
 
 # Mark 8
 
