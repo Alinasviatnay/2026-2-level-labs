@@ -317,15 +317,11 @@ def calculate_mse(predicted: Sequence[float], actual: Sequence[float]) -> float 
     if not predicted or not actual:
         return 0.0
 
-    sum_squared = 0.0
+    sum_squared = [(a - p) ** 2 for a, p in zip(actual, predicted)]
+    sum_mse = sum(sum_squared)
+    mse = sum_mse / len(actual)
 
-    for i, pred in enumerate(predicted):
-        diff = actual[i] - pred
-        sum_squared += diff ** 2
-
-    mse_calculate = sum_squared / len(predicted)
-
-    return mse_calculate
+    return mse
 
 
 def compare_profiles_by_mse(
