@@ -154,7 +154,7 @@ def create_language_profile(
     if not isinstance(language, str) or not isinstance(text, str):
         return None
 
-    if not isinstance(stop_words, Sequence) or isinstance(stop_words, str):
+    if not isinstance(stop_words, Sequence):
         return None
 
     tokens = tokenize(text)
@@ -276,12 +276,14 @@ def detect_language_by_top_n(
 
     if score_1 > score_2:
         return lang_name_1
-    elif score_2 > score_1:
+    if score_2 > score_1:
         return lang_name_2
-    else:
-        listt = [lang_name_1, lang_name_2]
-        listt_2 = sorted(listt)
-        return listt_2[0]
+
+    listt = [lang_name_1, lang_name_2]
+
+    listt_2 = sorted(listt)
+
+    return listt_2[0]
 
 # Mark 8
 
@@ -310,13 +312,13 @@ def calculate_mse(predicted: Sequence[float], actual: Sequence[float]) -> float 
     if not predicted or not actual:
         return 0.0
 
-    sum_squared_error = 0.0
+    sum_squared = 0.0
 
-    for i in range(len(predicted)):
-        error = actual[i] - predicted[i]
-        sum_squared_error += error ** 2
+    for i, pred in enumerate(predicted):
+        diff = actual[i] - pred
+        sum_squared += diff ** 2
 
-    mse_calculate = sum_squared_error / len(predicted)
+    mse_calculate = sum_squared / len(predicted)
 
     return mse_calculate
 
@@ -402,12 +404,14 @@ def detect_language_by_mse(
 
     if score_1 > score_2:
         return lang_name_2
-    elif score_2 > score_1:
+    if score_2 > score_1:
         return lang_name_1
-    else:
-        listt = [lang_name_1, lang_name_2]
-        listt_2 = sorted(listt)
-        return listt_2[0]
+
+    listt = [lang_name_1, lang_name_2]
+
+    listt_2 = sorted(listt)
+
+    return listt_2[0]
 
 # Mark 10
 
