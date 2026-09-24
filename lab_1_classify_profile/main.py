@@ -151,10 +151,9 @@ def create_language_profile(
         ProfileType | None: Language profile.
         Returns None in case of incorrect input types.
     """
-    if not isinstance(language, str):
+    if not isinstance(language, str) or not isinstance(text, str):
         return None
-    if not isinstance(text, str):
-        return None
+
     if not isinstance(stop_words, Sequence) or isinstance(stop_words, str):
         return None
 
