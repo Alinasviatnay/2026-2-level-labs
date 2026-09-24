@@ -42,8 +42,6 @@ def main() -> None:
     unknown_tokens = remove_stop_words(unknown_tokens, stopwords)
 
     de_freq = calculate_frequencies(de_tokens)
-    en_freq = calculate_frequencies(en_tokens)
-    unknown_freq = calculate_frequencies(unknown_tokens)
 
     top_n_words = get_top_n_words(de_freq, 7)
 
@@ -71,4 +69,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
