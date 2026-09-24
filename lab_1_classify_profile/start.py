@@ -60,8 +60,7 @@ def main() -> None:
     unknown_profile is None:
         return
 
-    detected_language_top_n = detect_language_by_top_n(unknown_profile,
-                                                       en_profile, de_profile, 15)
+    detected_language_top_n = detect_language_by_top_n(unknown_profile, en_profile, de_profile, 15)
 
     print(f"Определённый язык (по топ-15 словам): {detected_language_top_n}")
 
