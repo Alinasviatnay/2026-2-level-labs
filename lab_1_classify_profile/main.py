@@ -118,19 +118,20 @@ def get_top_n_words(freq_dict: dict[str, float], top_n: int) -> Sequence[str] | 
         Sequence[str] | None: Sequence of the most common words.
         Returns None in case of incorrect input types or non-positive top_n.
     """
-    if not isinstance(top_n, int):
-        return None
-
-    if top_n <= 0:
+    if not isinstance(top_n, int) or top_n <= 0:
         return None
 
     if not isinstance(freq_dict, dict):
         return None
 
+    if not all(isinstance(key, str) for key in freq_dict):
+        return None
+    if not all(isinstance(value, float) for value in freq_dict.values()):
+        return None
+
     sorted_words = sorted(freq_dict.keys(), key=lambda x: (-freq_dict[x], x))
 
     return sorted_words[:top_n]
-
 
 
 # Mark 6.
@@ -151,10 +152,15 @@ def create_language_profile(
         ProfileType | None: Language profile.
         Returns None in case of incorrect input types.
     """
-    if not isinstance(language, str) or not isinstance(text, str):
+    if not all([
+        isinstance(language, str),
+        isinstance(text, str),
+        isinstance(stop_words, Sequence),
+        not isinstance(stop_words, str)
+    ]):
         return None
 
-    if not isinstance(stop_words, Sequence):
+    if not all(isinstance(word, str) for word in stop_words):
         return None
 
     tokens = tokenize(text)
@@ -169,8 +175,7 @@ def create_language_profile(
     if freq is None:
         return None
 
-    n_words = len(freq)
-    profile = (language, freq, n_words)
+    profile = (language, freq, len(freq))
 
     return profile
 
