@@ -7,6 +7,9 @@ Language detection starter.
 
 from main import (
     calculate_frequencies,
+    calculate_mse,
+    check_profile,
+    compare_profiles_by_mse,
     compare_profiles_by_top_n,
     create_language_profile,
     detect_language_by_mse,
