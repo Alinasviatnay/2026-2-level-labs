@@ -30,22 +30,35 @@ def main() -> None:
         en_text = file.read()
 
     de_tokens = tokenize(de_text)
-    en_tokens = tokenize(en_text)
-    unknown_tokens = tokenize(unknown_text)
+
+    if de_tokens is None:
+        return
 
     de_tokens = remove_stop_words(de_tokens, stopwords)
-    en_tokens = remove_stop_words(en_tokens, stopwords)
-    unknown_tokens = remove_stop_words(unknown_tokens, stopwords)
+
+    if de_tokens is None:
+        return
 
     de_freq = calculate_frequencies(de_tokens)
 
+    if de_freq is None:
+        return
+
     top_n_words = get_top_n_words(de_freq, 7)
+
+    if top_n_words is None:
+        return
 
     print(f"Топ-7 слов немецкого текста: {top_n_words}")
 
     de_profile = create_language_profile("de", de_text, stopwords)
     en_profile = create_language_profile("en", en_text, stopwords)
     unknown_profile = create_language_profile("unknown", unknown_text, stopwords)
+
+    if de_profile is None or \
+        en_profile is None or \
+        unknown_profile is None:
+            return
 
     detected_language_top_n = detect_language_by_top_n(unknown_profile,
                                                        en_profile, de_profile, 15)
