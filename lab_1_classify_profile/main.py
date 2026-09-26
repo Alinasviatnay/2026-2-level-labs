@@ -175,9 +175,7 @@ def create_language_profile(
     if freq is None:
         return None
 
-    profile = (language, freq, len(freq))
-
-    return profile
+    return language, freq, len(freq)
 
 
 def check_profile(profile: ProfileType) -> bool:
@@ -223,7 +221,7 @@ def compare_profiles_by_top_n(
     """
 
 
-    if not all(check_profile(p) for p in (unknown_profile, profile_to_compare)):
+    if not all([check_profile(p) for p in (unknown_profile, profile_to_compare)]):
         return None
 
     if not isinstance(top_n, int) or top_n <= 0:
@@ -233,8 +231,6 @@ def compare_profiles_by_top_n(
     profile_to_compare_top_n = get_top_n_words(profile_to_compare[1], top_n)
 
     if unknown_profile_top_n is None or profile_to_compare_top_n is None:
-        return None
-    if len(unknown_profile_top_n) == 0:
         return None
 
     unknown_set = set(unknown_profile_top_n)
@@ -284,11 +280,7 @@ def detect_language_by_top_n(
     if score_2 > score_1:
         return lang_name_2
 
-    listt = [lang_name_1, lang_name_2]
-
-    listt_2 = sorted(listt)
-
-    return listt_2[0]
+    return sorted([lang_name_1, lang_name_2])[0]
 
 # Mark 8
 
@@ -318,10 +310,8 @@ def calculate_mse(predicted: Sequence[float], actual: Sequence[float]) -> float 
         return 0.0
 
     sum_squared = [(a - p) ** 2 for a, p in zip(actual, predicted)]
-    sum_mse = sum(sum_squared)
-    mse = sum_mse / len(actual)
 
-    return mse
+    return sum(sum_squared) / len(actual)
 
 
 def compare_profiles_by_mse(
@@ -345,16 +335,8 @@ def compare_profiles_by_mse(
     lang_1 = unknown_profile[1]
     lang_2 = profile_to_compare[1]
 
-    tokens_lang_1 = []
-    tokens_lang_2 = []
-
-    for key in lang_1:
-        tokens_lang_1.append(key)
-    for key in lang_2:
-        tokens_lang_2.append(key)
-
-    unknown_set = set(tokens_lang_1)
-    set_to_compare = set(tokens_lang_2)
+    unknown_set = set(lang_1.keys())
+    set_to_compare = set(lang_2.keys())
     conjunction = unknown_set | set_to_compare
 
     actual_list = []
@@ -364,12 +346,10 @@ def compare_profiles_by_mse(
         val1 = lang_1.get(word, 0.0)
         val2 = lang_2.get(word, 0.0)
 
-    actual_list.append(val1)
-    predicted_list.append(val2)
+        actual_list.append(val1)
+        predicted_list.append(val2)
 
     return calculate_mse(predicted_list, actual_list)
-
-
 
 def detect_language_by_mse(
     unknown_profile: ProfileType, profile_1: ProfileType, profile_2: ProfileType
@@ -408,11 +388,7 @@ def detect_language_by_mse(
     if score_2 > score_1:
         return lang_name_1
 
-    listt = [lang_name_1, lang_name_2]
-
-    listt_2 = sorted(listt)
-
-    return listt_2[0]
+    return sorted([lang_name_1, lang_name_2])[0]
 
 # Mark 10
 
