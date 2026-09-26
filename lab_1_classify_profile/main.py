@@ -300,9 +300,9 @@ def calculate_mse(predicted: Sequence[float], actual: Sequence[float]) -> float 
     """
     if not isinstance(predicted, Sequence) or not isinstance(actual, Sequence):
         return None
-    if not all([isinstance(element, float) for element in predicted]):
+    if not all(isinstance(element, float) for element in predicted):
         return None
-    if not all([isinstance(element, float) for element in actual]):
+    if not all(isinstance(element, float) for element in actual):
         return None
     if len(predicted) != len(actual):
         return None
