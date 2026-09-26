@@ -221,7 +221,7 @@ def compare_profiles_by_top_n(
     """
 
 
-    if not all([check_profile(p) for p in (unknown_profile, profile_to_compare)]):
+    if not all([check_profile(unknown_profile), check_profile(profile_to_compare)]):
         return None
 
     if not isinstance(top_n, int) or top_n <= 0:
@@ -256,9 +256,9 @@ def detect_language_by_top_n(
         str | None: Unknown profile language.
         Returns None in case of incorrect input types.
     """
-    if not all(check_profile(p) for p in (unknown_profile,
-                                          profile_1,
-                                          profile_2)):
+    if not all([check_profile(unknown_profile),
+                       check_profile(profile_1),
+                       check_profile(profile_2)]):
         return None
 
     if not isinstance(top_n, int) or top_n <= 0:
@@ -300,9 +300,9 @@ def calculate_mse(predicted: Sequence[float], actual: Sequence[float]) -> float 
     """
     if not isinstance(predicted, Sequence) or not isinstance(actual, Sequence):
         return None
-    if not all(isinstance(element, float) for element in predicted):
+    if not all([isinstance(element, float) for element in predicted]):
         return None
-    if not all(isinstance(element, float) for element in actual):
+    if not all([isinstance(element, float) for element in actual]):
         return None
     if len(predicted) != len(actual):
         return None
