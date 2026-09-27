@@ -4,7 +4,6 @@ Language detection starter.
 
 # pylint: disable=unused-variable, duplicate-code
 
-
 from lab_1_classify_profile.main import (
     calculate_frequencies,
     create_language_profile,
@@ -69,7 +68,7 @@ def main() -> None:
         profile_1=en_profile,
         profile_2=de_profile
     )
-    print(result)
+    print(f"Итоговый вывод языка: {result}")
     assert result, "Detection result is None"
 
 
