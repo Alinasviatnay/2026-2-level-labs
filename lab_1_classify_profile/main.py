@@ -88,22 +88,6 @@ def calculate_frequencies(tokens: Sequence[str]) -> dict[str, float] | None:
 
     return frequency
 
-    if not all(isinstance(token, str) for token in tokens):
-        return None
-
-    length = len(tokens)
-
-    if length == 0:
-        return {}
-
-    freq = {}
-
-    for token in tokens:
-        if token not in freq:
-            freq[token] = 0.0
-        freq[token] += 1.0 / length
-
-    return freq
 
 def get_top_n_words(freq_dict: dict[str, float], top_n: int) -> Sequence[str] | None:
     """
@@ -211,18 +195,6 @@ def check_profile(profile: ProfileType) -> bool:
 
     return True
 
-    if (not isinstance(profile[0], str)
-        or not isinstance(profile[1], dict)
-        or not isinstance(profile[2], int)):
-        return False
-
-    freq = profile[1]
-
-    for key, value in freq.items():
-        if not all([isinstance(key, str), isinstance(value, float)]):
-            return False
-
-    return True
 
 def compare_profiles_by_top_n(
     unknown_profile: ProfileType, profile_to_compare: ProfileType, top_n: int
@@ -265,25 +237,6 @@ def compare_profiles_by_top_n(
     result = num_of_common_words / num_of_unk_words
 
     return result
-
-
-    if not all([check_profile(unknown_profile), check_profile(profile_to_compare)]):
-        return None
-
-    if not isinstance(top_n, int) or top_n <= 0:
-        return None
-
-    unknown_profile_top_n = get_top_n_words(unknown_profile[1], top_n)
-    profile_to_compare_top_n = get_top_n_words(profile_to_compare[1], top_n)
-
-    if unknown_profile_top_n is None or profile_to_compare_top_n is None:
-        return None
-
-    unknown_set = set(unknown_profile_top_n)
-    language_set = set(profile_to_compare_top_n)
-    intersaction = unknown_set & language_set
-
-    return len(intersaction) / len(unknown_profile_top_n)
 
 
 def detect_language_by_top_n(
@@ -329,26 +282,6 @@ def detect_language_by_top_n(
 
     return sorted_list[0]
 
-    if not isinstance(top_n, int) or top_n <= 0:
-        return None
-
-    lang_name_1 = profile_1[0]
-    lang_name_2 = profile_2[0]
-
-    score_1 = compare_profiles_by_top_n(unknown_profile,
-                                        profile_1, top_n)
-    score_2 = compare_profiles_by_top_n(unknown_profile,
-                                        profile_2, top_n)
-
-    if score_1 is None or score_2 is None:
-        return None
-
-    if score_1 > score_2:
-        return lang_name_1
-    if score_2 > score_1:
-        return lang_name_2
-
-    return sorted([lang_name_1, lang_name_2])[0]
 
 # Mark 8
 
@@ -443,24 +376,6 @@ def compare_profiles_by_mse(
 
     return calculate_mse(list_of_mse_unk, list_of_mse_sec)
 
-    lang_1 = unknown_profile[1]
-    lang_2 = profile_to_compare[1]
-
-    unknown_set = set(lang_1.keys())
-    set_to_compare = set(lang_2.keys())
-    conjunction = unknown_set | set_to_compare
-
-    actual_list = []
-    predicted_list = []
-
-    for word in conjunction:
-        val1 = lang_1.get(word, 0.0)
-        val2 = lang_2.get(word, 0.0)
-
-        actual_list.append(val1)
-        predicted_list.append(val2)
-
-    return calculate_mse(predicted_list, actual_list)
 
 def detect_language_by_mse(
     unknown_profile: ProfileType, profile_1: ProfileType, profile_2: ProfileType
