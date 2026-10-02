@@ -69,6 +69,7 @@ def main() -> None:
         profile_2=de_profile
     )
     print(f"Итоговый вывод языка: {result}")
+
     assert result, "Detection result is None"
 
 

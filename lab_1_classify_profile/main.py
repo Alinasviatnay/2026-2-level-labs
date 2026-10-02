@@ -94,7 +94,7 @@ def calculate_frequencies(tokens: Sequence[str]) -> dict[str, float] | None:
 
     length = len(tokens)
 
-    if length == 0:
+    if not tokens:
         return {}
 
     freq = {}
@@ -309,10 +309,9 @@ def calculate_mse(predicted: Sequence[float], actual: Sequence[float]) -> float 
     if not predicted or not actual:
         return 0.0
 
-    sum_squared = [(a - p) ** 2 for a, p in zip(actual, predicted)]
+    sum_squared_mse = [(a - p) ** 2 for a, p in zip(actual, predicted)]
 
-    return sum(sum_squared) / len(actual)
-
+    return sum(sum_squared_mse) / len(actual)
 
 def compare_profiles_by_mse(
     unknown_profile: ProfileType, profile_to_compare: ProfileType
