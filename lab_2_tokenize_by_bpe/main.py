@@ -24,7 +24,7 @@ def prepare_word(
 
     In case of corrupt input arguments, None is returned
     """
-    if not isinstance (raw_word, str) or\
+    if not isinstance(raw_word, str) or\
     not isinstance(start_of_word, str | None) or\
     not isinstance(end_of_word, str | None):
         return None
@@ -60,7 +60,7 @@ def collect_frequencies(
     In case of corrupt input arguments or functions used return None,
     None is returned
     """
-    if not isinstance (text, str) or\
+    if not isinstance(text, str) or\
     not isinstance(start_of_word, str | None) or\
     not isinstance(end_of_word, str):
         return None
@@ -97,10 +97,10 @@ def count_tokens_pairs(
 
     In case of corrupt input arguments, None is returned
     """
-    if not isinstance (word_frequencies, dict):
+    if not isinstance(word_frequencies, dict):
         return None
     for key, value in word_frequencies.items():
-        if not isinstance (key, tuple):
+        if not isinstance(key, tuple):
             return None
         if not isinstance(value, int):
             return None
@@ -135,7 +135,36 @@ def merge_tokens(
 
     In case of corrupt input arguments, None is returned
     """
+    if not isinstance(word_frequencies, dict):
+        return None
+    for key, value in word_frequencies.items():
+        if not isinstance(key, tuple):
+            return None
+        if not isinstance(value, int):
+            return None
+        if not key or not all(isinstance(el, str) for el in key):
+            return None
+    if not isinstance(pair, tuple) or\
+    len(pair) != 2 or\
+    not all(isinstance(el, str) for el in pair):
+        return None
 
+    new_word_frequencies = {}
+    for word, frequency in word_frequencies.items():
+        word_list = list(word)
+        new_word_list = []
+        i = 0
+        while i < len(word_list):
+            if  i + 1 < len(word_list) and (word_list[i], word_list[i+1]) == pair:
+                new_word_list.append(word_list[i] + word_list[i+1])
+                i += 2
+            else:
+                new_word_list.append(word_list[i])
+                i += 1
+        new_word = tuple(new_word_list)
+        new_word_frequencies[new_word] = new_word_frequencies.get(new_word, 0) + frequency
+
+    return new_word_frequencies
 
 def train(
     word_frequencies: dict[tuple[str, ...], int] | None, num_merges: int
@@ -155,7 +184,44 @@ def train(
     In case of corrupt input arguments or functions used return None,
     None is returned
     """
+    if not isinstance(word_frequencies, dict | None):
+        return None
+    if word_frequencies is not None:
+        for key, value in word_frequencies.items():
+            if not isinstance(key, tuple):
+                return None
+            if not isinstance(value, int):
+                return None
+            if not key or not all(isinstance(el, str) for el in key):
+                return None
+    if not isinstance(num_merges, int):
+        return None
 
+    for _ in range(num_merges):
+        new_word_frequencies = count_tokens_pairs(word_frequencies)
+        if not new_word_frequencies:
+            break
+
+        the_most_frequened_list = []
+        the_most_frequened = max(new_word_frequencies.values())
+        for pair, frequency in new_word_frequencies.items():
+            if frequency == the_most_frequened:
+                the_most_frequened_list.append(pair)
+
+        the_longest_list = []
+        the_longest = max(len(pair[0]+pair[1]) for pair in the_most_frequened_list)
+        for pair in the_most_frequened_list:
+            if len(pair[0] + pair[1]) == the_longest:
+                the_longest_list.append(pair)
+
+        the_lexical_longest = min(pair[0]+pair[1] for pair in the_longest_list)
+        for pair in the_longest_list:
+            if pair[0] + pair[1] == the_lexical_longest:
+                the_best_pair = pair
+
+        word_frequencies = merge_tokens(word_frequencies, the_best_pair)
+
+    return word_frequencies
 
 def get_vocabulary(
     word_frequencies: dict[tuple[str, ...], int], unknown_token: str
