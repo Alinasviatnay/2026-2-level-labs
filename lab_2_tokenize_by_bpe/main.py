@@ -239,7 +239,31 @@ def get_vocabulary(
 
     In case of corrupt input arguments, None is returned
     """
+    if word_frequencies is None or not isinstance(word_frequencies, dict | None) or not isinstance(unknown_token, str):
+            return None
+    if word_frequencies is not None:
+        for key, value in word_frequencies.items():
+            if not isinstance(key, tuple):
+                return None
+            if not isinstance(value, int):
+                return None
+            if not key or not all(isinstance(el, str) for el in key):
+                return None
 
+    unique_tokens = set()
+    for word in word_frequencies:
+        for token in word:
+            unique_tokens.add(token)
+            for char in token:
+                unique_tokens.add(char)
+    unique_tokens.add(unknown_token)
+    sorted_unique_tokens = sorted(unique_tokens, key=lambda x: (-len(x), x))
+
+    dict_unique_tokens = {}
+    for i, token in enumerate(sorted_unique_tokens):
+        dict_unique_tokens[token] = i
+
+    return dict_unique_tokens
 
 def decode(
     encoded_text: Sequence[int] | None,
@@ -260,7 +284,33 @@ def decode(
 
     In case of corrupt input arguments, None is returned
     """
+    if not isinstance(encoded_text, Sequence | None) or \
+    not encoded_text or \
+    not isinstance(vocabulary, dict | None) or \
+    not vocabulary or \
+    not isinstance(end_of_word_token, str | None):
+        return None
+    if encoded_text is not None:
+        if not all (isinstance(item, int) for item in encoded_text):
+            return None
+    if vocabulary is not None:
+        for key, value in vocabulary.items():
+            if not isinstance(key, str) or not isinstance(value, int):
+                return None
 
+    reversed_vocabulary = {value: key for key, value in vocabulary.items()}
+    decoded_text = []
+    for token_id in encoded_text:
+        if token_id in reversed_vocabulary:
+            token = reversed_vocabulary[token_id]
+            if token == end_of_word_token:
+                decoded_text.append(" ")
+            else:
+                decoded_text.append(token)
+        else:
+            decoded_text.append("<unk>")
+
+    return "".join(decoded_text)
 
 def tokenize_word(
     word: tuple[str, ...], vocabulary: dict[str, int], end_of_word: str | None, unknown_token: str
