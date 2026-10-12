@@ -202,24 +202,14 @@ def train(
         if not new_word_frequencies:
             break
 
-        the_most_frequened_list = []
-        the_most_frequened = max(new_word_frequencies.values())
-        for pair, frequency in new_word_frequencies.items():
-            if frequency == the_most_frequened:
-                the_most_frequened_list.append(pair)
+        tokens_to_compare = list(new_word_frequencies.items())
+        sorted_tokens = sorted(
+            tokens_to_compare, key=lambda x: (
+                -x[1],
+                -len(x[0][0] + x[0][1]),
+                x[0][0] + x[0][1]))
 
-        the_longest_list = []
-        the_longest = max(len(pair[0]+pair[1]) for pair in the_most_frequened_list)
-        for pair in the_most_frequened_list:
-            if len(pair[0] + pair[1]) == the_longest:
-                the_longest_list.append(pair)
-
-        the_lexical_longest = min(pair[0]+pair[1] for pair in the_longest_list)
-        for pair in the_longest_list:
-            if pair[0] + pair[1] == the_lexical_longest:
-                the_best_pair = pair
-
-        word_frequencies = merge_tokens(word_frequencies, the_best_pair)
+        word_frequencies = merge_tokens(word_frequencies, sorted_tokens[0][0])
 
     return word_frequencies
 
@@ -254,14 +244,11 @@ def get_vocabulary(
     for word in word_frequencies:
         for token in word:
             unique_tokens.add(token)
-            for char in token:
-                unique_tokens.add(char)
+            unique_tokens.update(token)
     unique_tokens.add(unknown_token)
     sorted_unique_tokens = sorted(unique_tokens, key=lambda x: (-len(x), x))
 
-    dict_unique_tokens = {}
-    for i, token in enumerate(sorted_unique_tokens):
-        dict_unique_tokens[token] = i
+    dict_unique_tokens = {token: i for i, token in enumerate(sorted_unique_tokens)}
 
     return dict_unique_tokens
 
@@ -302,15 +289,14 @@ def decode(
     decoded_text = []
     for token_id in encoded_text:
         if token_id in reversed_vocabulary:
-            token = reversed_vocabulary[token_id]
-            if token == end_of_word_token:
-                decoded_text.append(" ")
-            else:
-                decoded_text.append(token)
+             decoded_text.append(reversed_vocabulary[token_id])
         else:
             decoded_text.append("<unk>")
 
-    return "".join(decoded_text)
+    result = "".join(decoded_text)
+    if end_of_word_token is not None:
+        result = result.replace(end_of_word_token, " ")
+    return result
 
 def tokenize_word(
     word: tuple[str, ...], vocabulary: dict[str, int], end_of_word: str | None, unknown_token: str
@@ -329,7 +315,32 @@ def tokenize_word(
 
     In case of corrupt input arguments, None is returned
     """
+    if not isinstance(word, tuple) or \
+    not isinstance(vocabulary, dict) or \
+    not isinstance(end_of_word, str | None) or \
+    not isinstance(unknown_token, str):
+        return None
+    if not all(isinstance(token, str) for token in word) or \
+    not all(isinstance(key, str) and isinstance(value, int) for key, value in vocabulary.items()):
+        return None
 
+    vocabulary_tokens = sorted(vocabulary, key=lambda x: (-len(x), x))
+
+    result_ids = []
+    i = 0
+    word_str = "".join(word)
+
+    while i < len(word_str):
+        for token in vocabulary_tokens:
+            if word_str[i:].startswith(token):
+                result_ids.append(vocabulary[token])
+                i += len(token)
+                break
+        else:
+            result_ids.append(vocabulary[unknown_token])
+            i += 1
+
+    return result_ids
 
 def load_vocabulary(vocab_path: str) -> dict[str, int] | None:
     """
