@@ -3,7 +3,7 @@ BPE Tokenizer starter
 """
 
 # pylint:disable=too-many-locals, unused-variable
-from main import (
+from lab_2_tokenize_by_bpe.main import (
     collect_frequencies,
     decode,
     encode,
@@ -26,7 +26,7 @@ def main() -> None:
     with open("lab_2_tokenize_by_bpe/assets/ru_raw.txt", "r", encoding="utf-8") as text_file:
         ru_text = text_file.read()
     with open("lab_2_tokenize_by_bpe/assets/ru_encoded.txt", "r", encoding="utf-8") as text_file:
-            ru_expected = [int(i) for i in text_file.read().split()]
+        ru_expected = [int(i) for i in text_file.read().split()]
 
     freq_dict = collect_frequencies(text, None, "</s>")
     print(f"Demonstration of frequency dictionary: {freq_dict}")
@@ -37,7 +37,8 @@ def main() -> None:
     vocabulary = get_vocabulary(trains, "<unk>")
     print(f"Vocabulary size: {len(vocabulary)}")
 
-    with open("lab_2_tokenize_by_bpe/assets/secrets/secret_5.txt", "r", encoding="utf-8") as secret_file:
+    with open("lab_2_tokenize_by_bpe/assets/secrets/secret_5.txt", "r",
+              encoding="utf-8") as secret_file:
         secret_content = secret_file.read()
 
     encoded_numbers = [int(x) for x in secret_content.split()]

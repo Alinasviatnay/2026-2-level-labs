@@ -5,7 +5,6 @@ BPE and machine translation evaluation
 """
 
 import json
-import re
 
 # pylint:disable=unused-argument
 from typing import Sequence
@@ -232,8 +231,10 @@ def get_vocabulary(
 
     In case of corrupt input arguments, None is returned
     """
-    if word_frequencies is None or not isinstance(word_frequencies, dict | None) or not isinstance(unknown_token, str):
-            return None
+    if word_frequencies is None or\
+        not isinstance(word_frequencies, dict | None) or\
+        not isinstance(unknown_token, str):
+        return None
     if word_frequencies is not None:
         for key, value in word_frequencies.items():
             if not isinstance(key, tuple):
@@ -289,12 +290,8 @@ def decode(
                 return None
 
     reversed_vocabulary = {value: key for key, value in vocabulary.items()}
-    decoded_text = []
-    for token_id in encoded_text:
-        if token_id in reversed_vocabulary:
-             decoded_text.append(reversed_vocabulary[token_id])
-        else:
-            decoded_text.append("<unk>")
+    decoded_text = [reversed_vocabulary.get(token_id, "<unk>")
+                    for token_id in encoded_text]
 
     result = "".join(decoded_text)
     if end_of_word_token is not None:
