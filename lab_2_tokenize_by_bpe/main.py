@@ -187,14 +187,13 @@ def train(
     """
     if not isinstance(word_frequencies, dict):
         return None
-    if word_frequencies is not None:
-        for key, value in word_frequencies.items():
-            if not isinstance(key, tuple):
-                return None
-            if not isinstance(value, int):
-                return None
-            if not key or not all(isinstance(el, str) for el in key):
-                return None
+    for key, value in word_frequencies.items():
+        if not isinstance(key, tuple):
+            return None
+        if not isinstance(value, int):
+            return None
+        if not key or not all(isinstance(el, str) for el in key):
+            return None
     if not isinstance(num_merges, int):
         return None
 

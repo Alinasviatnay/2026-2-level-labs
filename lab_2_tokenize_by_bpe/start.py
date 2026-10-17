@@ -10,7 +10,7 @@ from lab_2_tokenize_by_bpe.main import (
     encode,
     get_vocabulary,
     load_vocabulary,
-    train
+    train,
 )
 
 
@@ -31,15 +31,15 @@ def main() -> None:
 
     freq_dict = collect_frequencies(text, None, "</s>")
     if freq_dict is None:
-        return None
+        return
 
     trains = train(freq_dict, 100)
     if trains is None:
-        return None
+        return
 
     vocabulary = get_vocabulary(trains, "<unk>")
-    if get_vocabulary is None:
-        return None
+    if vocabulary is None:
+        return
 
     with open("lab_2_tokenize_by_bpe/assets/secrets/secret_5.txt", "r",
               encoding="utf-8") as secret_file:
@@ -52,16 +52,16 @@ def main() -> None:
 
     translated_vocabulary = load_vocabulary("lab_2_tokenize_by_bpe/assets/vocab.json")
     if translated_vocabulary is None:
-        return None
+        return
     encoded_tokens = encode(ru_text, translated_vocabulary, "\u2581", None, "<unk>")
     if encoded_tokens is None:
-        return None
+        return
 
     print("Comparison:", encoded_tokens[:20] == ru_expected[:20])
 
     predictions_decoded = decode(translation_encoded_raw, translated_vocabulary, None)
     if predictions_decoded is None:
-        return None
+        return
 
     predictions_decoded = predictions_decoded.replace("\u2581", " ")
 
