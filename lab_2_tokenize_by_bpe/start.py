@@ -3,7 +3,7 @@ BPE Tokenizer starter
 """
 
 # pylint:disable=too-many-locals, unused-variable
-from main import (
+from lab_2_tokenize_by_bpe.main import (
     calculate_bleu,
     collect_frequencies,
     decode,
@@ -30,10 +30,16 @@ def main() -> None:
         ru_expected = [int(i) for i in text_file.read().split()]
 
     freq_dict = collect_frequencies(text, None, "</s>")
+    if freq_dict is None:
+        return None
 
     trains = train(freq_dict, 100)
+    if trains is None:
+        return None
 
     vocabulary = get_vocabulary(trains, "<unk>")
+    if get_vocabulary is None:
+        return None
 
     with open("lab_2_tokenize_by_bpe/assets/secrets/secret_5.txt", "r",
               encoding="utf-8") as secret_file:

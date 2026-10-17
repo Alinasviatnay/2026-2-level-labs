@@ -185,7 +185,7 @@ def train(
     In case of corrupt input arguments or functions used return None,
     None is returned
     """
-    if not isinstance(word_frequencies, dict | None):
+    if not isinstance(word_frequencies, dict):
         return None
     if word_frequencies is not None:
         for key, value in word_frequencies.items():
@@ -473,14 +473,12 @@ def calculate_precision(
         and isinstance(reference, list)):
         return None
     for ngram in actual:
-        if not isinstance(ngram, tuple):
-            return None
-        if not all((isinstance(i, str)) for i in ngram):
+        if not isinstance(ngram, tuple) or\
+            not all((isinstance(i, str)) for i in ngram):
             return None
     for ngram in reference:
-        if not isinstance(ngram, tuple):
-            return None
-        if not all((isinstance(i, str)) for i in ngram):
+        if not isinstance(ngram, tuple) or\
+            not all((isinstance(i, str)) for i in ngram):
             return None
     if not actual or not reference:
         return 0.0
@@ -532,7 +530,7 @@ def calculate_bleu(actual: str | None, reference: str, max_order: int = 3) -> fl
     In case of corrupt input arguments or functions used return None,
     None is returned
     """
-    if not isinstance(actual, str | None) or\
+    if not isinstance(actual, str) or\
     not isinstance(reference, str) or\
     not isinstance(max_order, int):
         return None
