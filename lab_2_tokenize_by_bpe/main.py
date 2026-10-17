@@ -199,6 +199,8 @@ def train(
 
     for _ in range(num_merges):
         new_word_frequencies = count_tokens_pairs(word_frequencies)
+        if new_word_frequencies is None:
+            return None
         if not new_word_frequencies:
             break
 
@@ -210,6 +212,8 @@ def train(
                 "".join(x[0])))
 
         word_frequencies = merge_tokens(word_frequencies, sorted_tokens[0][0])
+        if word_frequencies is None:
+            return None
 
     return word_frequencies
 
