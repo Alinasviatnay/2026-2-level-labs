@@ -3,7 +3,8 @@ BPE Tokenizer starter
 """
 
 # pylint:disable=too-many-locals, unused-variable
-from lab_2_tokenize_by_bpe.main import (
+from main import (
+    calculate_bleu,
     collect_frequencies,
     decode,
     encode,
@@ -22,20 +23,17 @@ def main() -> None:
     with open("lab_2_tokenize_by_bpe/assets/en_raw.txt", "r", encoding="utf-8") as text_file:
         text_reference_translation = text_file.read()
     with open("lab_2_tokenize_by_bpe/assets/en_encoded.txt", "r", encoding="utf-8") as text_file:
-        translation_encoded_raw = text_file.read()
+        translation_encoded_raw = [int(i) for i in text_file.read().split()]
     with open("lab_2_tokenize_by_bpe/assets/ru_raw.txt", "r", encoding="utf-8") as text_file:
         ru_text = text_file.read()
     with open("lab_2_tokenize_by_bpe/assets/ru_encoded.txt", "r", encoding="utf-8") as text_file:
         ru_expected = [int(i) for i in text_file.read().split()]
 
     freq_dict = collect_frequencies(text, None, "</s>")
-    print(f"Demonstration of frequency dictionary: {freq_dict}")
 
     trains = train(freq_dict, 100)
-    print(f"Demonstration of trained tokenizer: {trains}")
 
     vocabulary = get_vocabulary(trains, "<unk>")
-    print(f"Vocabulary size: {len(vocabulary)}")
 
     with open("lab_2_tokenize_by_bpe/assets/secrets/secret_5.txt", "r",
               encoding="utf-8") as secret_file:
@@ -54,7 +52,16 @@ def main() -> None:
         return None
 
     print("Comparison:", encoded_tokens[:20] == ru_expected[:20])
-    assert decoded_text, "Translation not working"
+
+    predictions_decoded = decode(translation_encoded_raw, translated_vocabulary, None)
+    if predictions_decoded is None:
+        return None
+
+    predictions_decoded = predictions_decoded.replace("\u2581", " ")
+
+    result = calculate_bleu(predictions_decoded, text_reference_translation)
+    print(f"The result of metric bleu: {result}")
+    assert result, "Translation not working"
 
 
 if __name__ == "__main__":

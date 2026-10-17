@@ -5,6 +5,7 @@ BPE and machine translation evaluation
 """
 
 import json
+import math
 
 # pylint:disable=unused-argument
 from typing import Sequence
@@ -142,16 +143,15 @@ def merge_tokens(
         len(pair) != 2 or\
         not all(isinstance(el, str) for el in pair)):
         return None
-    for key, value in word_frequencies.items():
-        if not isinstance(key, tuple):
-            return None
-        if not isinstance(value, int):
-            return None
-        if not key or not all(isinstance(el, str) for el in key):
-            return None
 
     new_word_frequencies = {}
     for word, frequency in word_frequencies.items():
+        if not isinstance(word, tuple):
+            return None
+        if not isinstance(frequency, int):
+            return None
+        if not word or not all(isinstance(el, str) for el in word):
+            return None
         word_list = list(word)
         new_word_list = []
         i = 0
@@ -234,22 +234,23 @@ def get_vocabulary(
         not isinstance(word_frequencies, dict | None) or\
         not isinstance(unknown_token, str):
         return None
-    if word_frequencies is not None:
-        for key, value in word_frequencies.items():
-            if not isinstance(key, tuple):
-                return None
-            if not isinstance(value, int):
-                return None
-            if not key or not all(isinstance(el, str) for el in key):
-                return None
 
     unique_tokens = set()
-    for word in word_frequencies:
+
+    for word, frequency in word_frequencies.items():
+        if not isinstance(word, tuple):
+            return None
+        if not isinstance(frequency, int):
+            return None
+        if not word or not all(isinstance(el, str) for el in word):
+            return None
+
         for token in word:
             unique_tokens.add(token)
             unique_tokens.update(token)
+
+
     unique_tokens.add(unknown_token)
-    sorted_unique_tokens = sorted(unique_tokens, key=lambda x: (-len(x), x))
 
     return {
         token: i
@@ -324,53 +325,36 @@ def tokenize_word(
         not isinstance(unknown_token, str)):
         return None
     if not all(isinstance(token, str) for token in word) or \
-    not all(isinstance(key, str) and isinstance(value, int) for key, value in vocabulary.items()):
+    not all(isinstance(key, str) and isinstance(value, int)
+            for key, value in vocabulary.items()):
         return None
 
+    parts = list(word)
+
+    if end_of_word is not None and len(parts) > 0 and parts[-1] == end_of_word:
+        parts.pop()
+        parts.extend(list(end_of_word))
+    elif end_of_word is not None and len(parts) > 0 and parts[-1] != end_of_word:
+        parts.extend(list(end_of_word))
+
     vocabulary_tokens = sorted(vocabulary, key=lambda x: (-len(x), x))
-    word_str = "".join(word)
-    all_matches = []
-    chosen_matches = []
 
     for token in vocabulary_tokens:
-        if token not in word_str:
+        if not token:
             continue
-        search_start = 0
-        while True:
-            found_index = word_str.find(token, search_start)
-            if found_index == -1:
-                break
-            end_index = found_index + len(token)
-            all_matches.append((found_index, end_index, vocabulary[token]))
-            search_start = end_index
 
-    sorted_all_matches = sorted(all_matches, key=lambda pieces: -(pieces[1] - pieces[0]))
+        token_len = len(token)
 
-    for pieces in sorted_all_matches:
-        new_start, new_end, _ = pieces
-        has_overlap = False
-        for final_piece in chosen_matches:
-            old_start, old_end, _ = final_piece
-            if new_end > old_start and old_end > new_start:
-                has_overlap = True
-                break
-        if not has_overlap:
-            chosen_matches.append(pieces)
+        index = 0
 
-    unk_id = vocabulary[unknown_token]
-    for i in range(len(word_str)):
-        is_covered = False
-        for pieces in chosen_matches:
-            p_start, p_end, _ = pieces
-            if p_start <= i < p_end:
-                is_covered = True
-                break
-        if not is_covered:
-            chosen_matches.append((i, i + 1, unk_id))
+        while index <= len(parts) - token_len:
+            if "".join(parts[index:index + token_len]) == token:
+                parts[index:index + token_len] = [token]
+                index += 1
+            else:
+                index += 1
 
-    sorted_pieces = sorted(chosen_matches, key=lambda x: x[0])
-
-    return [piece[2] for piece in sorted_pieces]
+    return [vocabulary.get(token, vocabulary[unknown_token]) for token in parts]
 
 def load_vocabulary(vocab_path: str) -> dict[str, int] | None:
     """
@@ -460,7 +444,15 @@ def collect_ngrams(text: str, order: int) -> list[tuple[str, ...]] | None:
 
     In case of corrupt input arguments, None is returned
     """
+    if (not isinstance(text, str)
+        or not isinstance(order, int)):
+        return None
 
+    ngrams_list = []
+    for i in range(len(text) - order + 1):
+        ngrams_list.append(tuple(text[i:i + order]))
+
+    return ngrams_list
 
 def calculate_precision(
     actual: Sequence[tuple[str, ...]], reference: Sequence[tuple[str, ...]]
@@ -477,7 +469,25 @@ def calculate_precision(
 
     In case of corrupt input arguments, None is returned.
     """
+    if not (isinstance(actual, list)
+        and isinstance(reference, list)):
+        return None
+    for ngram in actual:
+        if not isinstance(ngram, tuple):
+            return None
+        if not all((isinstance(i, str)) for i in ngram):
+            return None
+    for ngram in reference:
+        if not isinstance(ngram, tuple):
+            return None
+        if not all((isinstance(i, str)) for i in ngram):
+            return None
+    if not actual or not reference:
+        return 0.0
 
+    matches = set(actual) & set(reference)
+
+    return len(matches) / len(set(actual))
 
 def calculate_geo_mean(precisions: Sequence[float], max_order: int) -> float | None:
     """
@@ -492,6 +502,19 @@ def calculate_geo_mean(precisions: Sequence[float], max_order: int) -> float | N
 
     In case of corrupt input arguments, None is returned
     """
+    if not (isinstance(precisions, Sequence)
+            and isinstance(max_order, int)):
+        return None
+    if not all (isinstance(el, (float, int)) for el in precisions):
+        return None
+    if not precisions:
+        return None
+    for element in precisions:
+        if element <= 0:
+            return 0.0
+
+    logs = [math.log(i) for i in precisions]
+    return math.exp(sum(logs) / max_order)
 
 
 def calculate_bleu(actual: str | None, reference: str, max_order: int = 3) -> float | None:
@@ -509,3 +532,28 @@ def calculate_bleu(actual: str | None, reference: str, max_order: int = 3) -> fl
     In case of corrupt input arguments or functions used return None,
     None is returned
     """
+    if not isinstance(actual, str | None) or\
+    not isinstance(reference, str) or\
+    not isinstance(max_order, int):
+        return None
+
+    precisions_list = []
+
+    for i in range(1, max_order + 1):
+        actual_ngrams = collect_ngrams(actual, i)
+        predicted_ngrams = collect_ngrams(reference, i)
+
+        if actual_ngrams is None or\
+            predicted_ngrams is None:
+            return None
+
+        precision = calculate_precision(actual_ngrams, predicted_ngrams)
+        if precision is None:
+            return None
+        precisions_list.append(precision)
+
+    result = calculate_geo_mean(precisions_list, max_order)
+    if result is None:
+        return None
+
+    return result * 100
