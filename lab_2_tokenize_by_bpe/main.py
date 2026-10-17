@@ -185,17 +185,14 @@ def train(
     In case of corrupt input arguments or functions used return None,
     None is returned
     """
-    if not isinstance(word_frequencies, dict):
+    if not isinstance(word_frequencies, dict) or\
+        not isinstance(num_merges, int):
         return None
     for key, value in word_frequencies.items():
-        if not isinstance(key, tuple):
+        if not isinstance(key, tuple) or\
+            not isinstance(value, int) or\
+                not key or not all(isinstance(el, str) for el in key):
             return None
-        if not isinstance(value, int):
-            return None
-        if not key or not all(isinstance(el, str) for el in key):
-            return None
-    if not isinstance(num_merges, int):
-        return None
 
     for _ in range(num_merges):
         new_word_frequencies = count_tokens_pairs(word_frequencies)
