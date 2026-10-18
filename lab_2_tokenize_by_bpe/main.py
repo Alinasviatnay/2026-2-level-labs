@@ -331,10 +331,10 @@ def tokenize_word(
 
     parts = list(word)
 
-    if end_of_word is not None and len(parts) > 0 and parts[-1] == end_of_word:
+    if end_of_word is not None and parts[-1] == end_of_word:
         parts.pop()
         parts.extend(list(end_of_word))
-    elif end_of_word is not None and len(parts) > 0 and parts[-1] != end_of_word:
+    elif end_of_word is not None and parts[-1] != end_of_word:
         parts.extend(list(end_of_word))
 
     vocabulary_tokens = sorted(vocabulary, key=lambda x: (-len(x), x))
@@ -347,7 +347,7 @@ def tokenize_word(
 
         index = 0
 
-        while index <= len(parts) - token_len:
+        while index <= len(parts):
             if "".join(parts[index:index + token_len]) == token:
                 parts[index:index + token_len] = [token]
                 index += 1
@@ -485,7 +485,7 @@ def calculate_precision(
 
     matches = set(actual) & set(reference)
 
-    return len(matches) / len(set(actual))
+    return len(matches) / len(set(reference))
 
 def calculate_geo_mean(precisions: Sequence[float], max_order: int) -> float | None:
     """
