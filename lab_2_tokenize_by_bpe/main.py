@@ -469,8 +469,8 @@ def calculate_precision(
 
     In case of corrupt input arguments, None is returned.
     """
-    if not (isinstance(actual, list)
-        and isinstance(reference, list)):
+    if not (isinstance(actual, Sequence)
+        and isinstance(reference, Sequence)):
         return None
     for ngram in actual:
         if not isinstance(ngram, tuple) or\
