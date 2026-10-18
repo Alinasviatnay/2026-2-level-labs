@@ -347,7 +347,7 @@ def tokenize_word(
 
         index = 0
 
-        while index <= len(parts):
+        while index <= len(parts) - token_len:
             if "".join(parts[index:index + token_len]) == token:
                 parts[index:index + token_len] = [token]
                 index += 1
