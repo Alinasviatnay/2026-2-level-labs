@@ -485,7 +485,7 @@ def calculate_precision(
 
     matches = set(actual) & set(reference)
 
-    return len(matches) / len(set(reference))
+    return len(matches) / len(set(actual))
 
 def calculate_geo_mean(precisions: Sequence[float], max_order: int) -> float | None:
     """
