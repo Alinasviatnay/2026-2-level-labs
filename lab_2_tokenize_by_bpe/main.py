@@ -4,9 +4,6 @@ Lab 2.
 BPE and machine translation evaluation
 """
 
-import json
-import math
-
 # pylint:disable=unused-argument
 import json
 import math
@@ -177,28 +174,6 @@ def merge_tokens(
 
     return new_word_frequencies
 
-    new_word_frequencies = {}
-    for word, frequency in word_frequencies.items():
-        if not isinstance(word, tuple):
-            return None
-        if not isinstance(frequency, int):
-            return None
-        if not word or not all(isinstance(el, str) for el in word):
-            return None
-        word_list = list(word)
-        new_word_list = []
-        i = 0
-        while i < len(word_list):
-            if word_list[i:i+2] == list(pair):
-                new_word_list.append(word_list[i] + word_list[i+1])
-                i += 2
-            else:
-                new_word_list.append(word_list[i])
-                i += 1
-        new_word = tuple(new_word_list)
-        new_word_frequencies[new_word] = new_word_frequencies.get(new_word, 0) + frequency
-
-    return new_word_frequencies
 
 def train(
     word_frequencies: dict[tuple[str, ...], int] | None, num_merges: int
@@ -248,25 +223,6 @@ def train(
     return word_frequencies
 
 
-    for _ in range(num_merges):
-        new_word_frequencies = count_tokens_pairs(word_frequencies)
-        if new_word_frequencies is None:
-            return None
-        if not new_word_frequencies:
-            break
-
-        tokens_to_compare = list(new_word_frequencies.items())
-        sorted_tokens = sorted(
-            tokens_to_compare, key=lambda x: (
-                -x[1],
-                -len("".join(x[0])),
-                "".join(x[0])))
-
-        word_frequencies = merge_tokens(word_frequencies, sorted_tokens[0][0])
-        if word_frequencies is None:
-            return None
-
-    return word_frequencies
 
 def get_vocabulary(
     word_frequencies: dict[tuple[str, ...], int], unknown_token: str
@@ -354,19 +310,6 @@ def decode(
 
     return "".join(decoded_symbols)
 
-    reversed_vocabulary = {}
-    if vocabulary is not None:
-        for key, value in vocabulary.items():
-            if not isinstance(key, str) or not isinstance(value, int):
-                return None
-            reversed_vocabulary[value] = key
-    decoded_text = [reversed_vocabulary.get(token_id, "<unk>")
-                    for token_id in encoded_text]
-
-    result = "".join(decoded_text)
-    if end_of_word_token is not None:
-        result = result.replace(end_of_word_token, " ")
-    return result
 
 def tokenize_word(
     word: tuple[str, ...], vocabulary: dict[str, int], end_of_word: str | None, unknown_token: str
@@ -443,32 +386,6 @@ def tokenize_word(
 
     return encoded_ids
 
-    parts = list(word)
-
-    if end_of_word is not None and parts[-1] == end_of_word:
-        parts.pop()
-        parts.extend(list(end_of_word))
-    elif end_of_word is not None and parts[-1] != end_of_word:
-        parts.extend(list(end_of_word))
-
-    vocabulary_tokens = sorted(vocabulary, key=lambda x: (-len(x), x))
-
-    for token in vocabulary_tokens:
-        if not token:
-            continue
-
-        token_len = len(token)
-
-        index = 0
-
-        while index <= len(parts) - token_len:
-            if "".join(parts[index:index + token_len]) == token:
-                parts[index:index + token_len] = [token]
-                index += 1
-            else:
-                index += 1
-
-    return [vocabulary.get(token, vocabulary[unknown_token]) for token in parts]
 
 def load_vocabulary(vocab_path: str) -> dict[str, int] | None:
     """
@@ -492,17 +409,6 @@ def load_vocabulary(vocab_path: str) -> dict[str, int] | None:
         return None
     return data
 
-    with open (vocab_path, "r", encoding="utf-8") as file:
-        vocabulary = json.load(file)
-
-    if not isinstance(vocabulary, dict):
-        return None
-
-    for key, value in vocabulary.items():
-        if not all([isinstance(key, str), isinstance(value, int)]):
-            return None
-
-    return vocabulary
 
 def encode(
     original_text: str,
@@ -584,11 +490,6 @@ def collect_ngrams(text: str, order: int) -> list[tuple[str, ...]] | None:
 
     return ngrams
 
-    ngrams_list = []
-    for i in range(len(text) - order + 1):
-        ngrams_list.append(tuple(text[i:i + order]))
-
-    return ngrams_list
 
 def calculate_precision(
     actual: Sequence[tuple[str, ...]], reference: Sequence[tuple[str, ...]]
@@ -628,9 +529,6 @@ def calculate_precision(
 
     return matches / len(set(actual))
 
-    matches = set(actual) & set(reference)
-
-    return len(matches) / len(set(actual))
 
 def calculate_geo_mean(precisions: Sequence[float], max_order: int) -> float | None:
     """
