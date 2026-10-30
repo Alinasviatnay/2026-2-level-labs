@@ -561,7 +561,7 @@ def calculate_geo_mean(precisions: Sequence[float], max_order: int) -> float | N
 
     return math.exp(log_sum / max_order)
 
-def calculate_bleu(actual: str | None, reference: str, max_order: int = 3) -> float | None:
+def calculate_bleu(actual: str | None, reference: str, max_order: int = 2) -> float | None:
     """
     Compare two sequences by virtue of BLEU metric.
 
