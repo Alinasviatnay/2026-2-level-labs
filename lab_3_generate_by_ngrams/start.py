@@ -4,6 +4,7 @@ Generation by NGrams starter
 
 # pylint:disable=too-many-locals, unused-import, unused-variable
 
+from main import TextProcessor
 
 def main() -> None:
     """
@@ -15,7 +16,14 @@ def main() -> None:
         "./lab_3_generate_by_ngrams/assets/Harry_Potter.txt", "r", encoding="utf-8"
     ) as text_file:
         text = text_file.read()
-    result = None
+    processor = TextProcessor("_")
+    encoded = processor.encode(text)
+    decoded = processor.decode (encoded)
+    result = decoded
+    print("Начало декодированного текста")
+    print(result[:200])
+    print("Конец декодированного текста")
+    print(result[-200:])
     assert result
 
 
