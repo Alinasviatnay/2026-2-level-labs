@@ -21,19 +21,21 @@ def main() -> None:
     encoded = processor.encode(text)
     decoded = processor.decode (encoded)
 
-    print("Начало декодированного текста")
+    print("The start of decoded text")
     print(decoded[:200])
-    print("Конец декодированного текста")
+    print("The end of decoded text")
     print(decoded[-200:])
     assert decoded
 
     model = NGramLanguageModel(encoded, 7)
     built = model.build()
-    print(f"Результат метода: {built}")
+    print(f"The result of method: {built}")
+    assert built
 
     generator = GreedyTextGenerator(model, processor)
     generated_text = generator.run("Vernon", 51)
-    print(f"Сгенерированный текст:\n{generated_text}")
+    print(f"The generated text:\n{generated_text}")
+    assert generated_text
 
 if __name__ == "__main__":
     main()
