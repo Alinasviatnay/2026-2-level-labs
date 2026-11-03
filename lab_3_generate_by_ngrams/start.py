@@ -27,20 +27,19 @@ def main() -> None:
     decoded = processor.decode(encoded)
     assert decoded, "Text can not be decoded"
 
-    print("Начало декодированного текста")
     print(decoded[:200])
-    print("Конец декодированного текста")
-    print(decoded[-200:])
 
     model = NGramLanguageModel(encoded, 7)
     built = model.build()
-    print(f"Результат метода: {built}")
-    print(model._n_gram_frequencies)
+    assert built, "The result of method build is None"
+
+    print(built)
 
     generator = GreedyTextGenerator(model, processor)
     generated_text = generator.run("Vernon", 51)
-    print(f"Сгенерированный текст:\n{generated_text}")
-    assert generated_text
+    assert generated_text, "Generated text is None"
+
+    print(generated_text)
 
 if __name__ == "__main__":
     main()
