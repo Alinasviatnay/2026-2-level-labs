@@ -18,27 +18,18 @@ def main() -> None:
     ) as text_file:
         text = text_file.read()
 
-    processor = TextProcessor("_")
-    encoded = processor.encode(text)
-    decoded = processor.decode(encoded)
-
-    print("Decoded text start:")
-    print(decoded[:200])
-    print("Decoded text end:")
-    print(decoded[-200:])
-    assert decoded
+    text_processor = TextProcessor("_")
+    encoded_corpus = text_processor.encode(text)
 
     n_gram_size = 7
-    model = NGramLanguageModel(encoded, n_gram_size)
-    built = model.build()
-    print(f"Build result: {built}")
+    language_model = NGramLanguageModel(encoded_corpus, n_gram_size)
+    language_model.build()
 
-    generator = GreedyTextGenerator(model, processor)
+    greedy_text_generator = GreedyTextGenerator(language_model, text_processor)
 
     prompt = "Vernon"
     seq_len = 51
-    generated_text = generator.run(prompt, seq_len)
-    print(f"Generated text:\n{generated_text}")
+    generated_text = greedy_text_generator.run(prompt, seq_len)
 
     assert generated_text
 
