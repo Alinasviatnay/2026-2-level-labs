@@ -6,6 +6,8 @@ Beam-search and natural language generation evaluation
 
 # pylint:disable=too-few-public-methods
 
+import math
+
 
 class TextProcessor:
     """
@@ -80,7 +82,7 @@ class TextProcessor:
         In case of corrupt input arguments or arguments not included in storage,
         None is returned
         """
-        if not isinstance(element, str):
+        if element is None or not isinstance(element, str):
             return None
         return self._storage.get(element)
 
@@ -105,7 +107,7 @@ class TextProcessor:
 
         In case of corrupt input arguments or arguments not included in storage, None is returned
         """
-        if not isinstance(element_id, int):
+        if element_id is None or not isinstance(element_id, int):
             return None
         for token, token_id in self._storage.items():
             if token_id == element_id:
@@ -128,7 +130,7 @@ class TextProcessor:
         In case of corrupt input arguments, None is returned.
         In case any of methods used return None, None is returned.
         """
-        if not isinstance(text, str):
+        if text is None or not isinstance(text, str):
             return None
 
         tokenized_text = self._tokenize(text)
@@ -364,24 +366,13 @@ class NGramLanguageModel:
             return False
 
         ngram_counts = {}
+        context_counts = {}
         for ngram in ngrams:
-            if ngram not in ngram_counts:
-                ngram_counts[ngram] = 1
-            else:
-                ngram_counts[ngram] += 1
-
-        prefix_counts = {}
-        for ngram in ngrams:
-            prefix = ngram[:-1]
-            if prefix not in prefix_counts:
-                prefix_counts[prefix] = 1
-            else:
-                prefix_counts[prefix] += 1
+            ngram_counts[ngram] = ngram_counts.get(ngram, 0) + 1
+            context_counts[ngram[:-1]] = context_counts.get(ngram[:-1], 0) + 1
 
         for n_gram in ngram_counts:
-            prefix = n_gram[:-1]
-            probability = ngram_counts[n_gram] / prefix_counts[prefix]
-            self._n_gram_frequencies[n_gram] = probability
+            self._n_gram_frequencies[n_gram] = ngram_counts[n_gram] / context_counts[n_gram[:-1]]
 
         return True
 
@@ -403,11 +394,10 @@ class NGramLanguageModel:
             if not isinstance(el, int):
                 return None
 
-        k = self.__n_gram_size - 1
         result = {}
-        context = sequence[-k:]
+        context = sequence[-(self.__n_gram_size - 1):]
         for n_gram, probability in self._n_gram_frequencies.items():
-            if n_gram[:k] == context:
+            if n_gram[:(self.__n_gram_size - 1)] == context:
                 result[n_gram[-1]] = probability
 
         return result
@@ -432,14 +422,12 @@ class NGramLanguageModel:
             if not isinstance(el, int):
                 return None
 
-        n = self.__n_gram_size
-
-        if len(encoded_corpus) < n:
+        if len(encoded_corpus) < self.__n_gram_size:
             return None
 
         ngrams = []
-        for i in range(len(encoded_corpus) - n + 1):
-            ngram = encoded_corpus[i:i+n]
+        for i in range(len(encoded_corpus) - self.__n_gram_size + 1):
+            ngram = encoded_corpus[i:i+self.__n_gram_size]
             ngrams.append(ngram)
 
         return tuple(ngrams)
@@ -478,7 +466,7 @@ class GreedyTextGenerator:
         In case of corrupt input arguments or methods used return None,
         None is returned
         """
-        if not isinstance(prompt, str):
+        if prompt is None or not isinstance(prompt, str):
             return None
         if not isinstance(seq_len, int) or seq_len <= 0:
             return None
@@ -495,7 +483,7 @@ class GreedyTextGenerator:
 
         for _ in range(seq_len):
             candidates = self._model.generate_next_token(tuple(current_sequence))
-            if candidates is None or not candidates:
+            if not candidates:
                 break
 
             best_token = max(candidates.items(),
@@ -523,6 +511,8 @@ class BeamSearcher:
             beam_width (int): Number of candidates to consider at each step
             language_model (NGramLanguageModel): A language model to use for next token prediction
         """
+        self._beam_width = beam_width
+        self._model = language_model
 
     def get_next_token(self, sequence: tuple[int, ...]) -> list[tuple[int, float]] | None:
         """
@@ -541,6 +531,24 @@ class BeamSearcher:
 
         In case of corrupt input arguments or methods used return None.
         """
+        if not isinstance(sequence, tuple) or not sequence:
+            return None
+        for el in sequence:
+            if not isinstance(el, int):
+                return None
+
+        candidates = self._model.generate_next_token(sequence)
+        if candidates is None:
+            return None
+        if not candidates:
+            return []
+
+        sorted_candidates = sorted(list(candidates.items()), key=lambda x:
+                                   (x[1], x[0]), reverse=True)
+
+        best_candidates = sorted_candidates[:self._beam_width]
+
+        return best_candidates
 
     def continue_sequence(
         self,
@@ -564,6 +572,41 @@ class BeamSearcher:
 
         In case of corrupt input arguments or unexpected behaviour of methods used return None.
         """
+        if (
+        not isinstance(sequence, tuple)
+        or not isinstance(next_tokens, list)
+        or not isinstance(sequence_candidates, dict)
+        or not next_tokens
+        or not sequence
+        or not sequence_candidates
+        or len(next_tokens) > self._beam_width
+        or sequence not in sequence_candidates
+        ):
+            return None
+        for el in next_tokens:
+            if (
+            not isinstance(el, tuple)
+            or not isinstance(el[0], int)
+            or not isinstance(el[1], (float))
+        ):
+                return None
+        for key, value in sequence_candidates.items():
+            if (
+            not isinstance(key, tuple)
+            or not all(isinstance(token, int) for token in key)
+            or not isinstance(value, (int, float))
+        ):
+                return None
+
+        new_candidates = dict(sequence_candidates)
+        del new_candidates[sequence]
+        current_fine = sequence_candidates[sequence]
+
+        for token, probability in next_tokens:
+            new_sequence = sequence + (token,)
+            new_candidates[new_sequence] = current_fine - math.log(probability)
+
+        return new_candidates
 
     def prune_sequence_candidates(
         self, sequence_candidates: dict[tuple[int, ...], float]
@@ -579,7 +622,25 @@ class BeamSearcher:
 
         In case of corrupt input arguments return None.
         """
+        if not isinstance(sequence_candidates, dict) or not sequence_candidates:
+            return None
+        for key, value in sequence_candidates.items():
+            if (
+                not isinstance(key, tuple)
+                or not all(isinstance(token, int) for token in key)
+                or not isinstance(value, (int, float))
+                ):
+                return None
 
+        sorted_items = sorted(
+        sequence_candidates.items(),
+        key=lambda x: (-x[1], x[0]),
+        reverse=True
+        )
+
+        top_items = sorted_items[:self._beam_width]
+
+        return dict(top_items)
 
 class BeamSearchTextGenerator:
     """
