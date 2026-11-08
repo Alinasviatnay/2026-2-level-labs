@@ -356,9 +356,7 @@ class NGramLanguageModel:
         In case of corrupt input arguments or methods used return None,
         False is returned
         """
-        if not isinstance(self._encoded_corpus, tuple)\
-        or not self._encoded_corpus\
-        or self._encoded_corpus is None:
+        if not isinstance(self._encoded_corpus, tuple) or not self._encoded_corpus:
             return False
 
         ngrams = self._extract_n_grams(self._encoded_corpus)
@@ -486,9 +484,10 @@ class GreedyTextGenerator:
             if not candidates:
                 break
 
-            best_token = max(candidates.items(),
-                             key=lambda x:
-                             (x[1], x[0]))[0]
+            best_token = max(
+                candidates.items(),
+                key=lambda x: (x[1], x[0])
+            )[0]
 
             current_sequence.append(best_token)
 
@@ -573,29 +572,29 @@ class BeamSearcher:
         In case of corrupt input arguments or unexpected behaviour of methods used return None.
         """
         if (
-        not isinstance(sequence, tuple)
-        or not isinstance(next_tokens, list)
-        or not isinstance(sequence_candidates, dict)
-        or not next_tokens
-        or not sequence
-        or not sequence_candidates
-        or len(next_tokens) > self._beam_width
-        or sequence not in sequence_candidates
+            not isinstance(sequence, tuple)
+            or not isinstance(next_tokens, list)
+            or not isinstance(sequence_candidates, dict)
+            or not next_tokens
+            or not sequence
+            or not sequence_candidates
+            or len(next_tokens) > self._beam_width
+            or sequence not in sequence_candidates
         ):
             return None
         for el in next_tokens:
             if (
-            not isinstance(el, tuple)
-            or not isinstance(el[0], int)
-            or not isinstance(el[1], (float))
-        ):
+                not isinstance(el, tuple)
+                or not isinstance(el[0], int)
+                or not isinstance(el[1], float)
+            ):
                 return None
         for key, value in sequence_candidates.items():
             if (
-            not isinstance(key, tuple)
-            or not all(isinstance(token, int) for token in key)
-            or not isinstance(value, (int, float))
-        ):
+                not isinstance(key, tuple)
+                or not all(isinstance(token, int) for token in key)
+                or not isinstance(value, (int, float))
+            ):
                 return None
 
         new_candidates = dict(sequence_candidates)
@@ -629,7 +628,7 @@ class BeamSearcher:
                 not isinstance(key, tuple)
                 or not all(isinstance(token, int) for token in key)
                 or not isinstance(value, (int, float))
-                ):
+            ):
                 return None
 
         sorted_items = sorted(
