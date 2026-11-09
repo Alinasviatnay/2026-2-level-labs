@@ -197,6 +197,15 @@ class TextProcessor:
         Args:
             content (dict): ngrams from external JSON
         """
+        if not isinstance(content, dict) or not isinstance(content.get("freq"), dict):
+            return
+
+        for n_gram in content["freq"]:
+            if not isinstance(n_gram, str):
+                continue
+            for el in n_gram:
+                if el.isalpha():
+                    self._put(el.lower())
 
     def _decode(self, corpus: tuple[int, ...]) -> tuple[str, ...] | None:
         """
@@ -344,6 +353,10 @@ class NGramLanguageModel:
         Args:
             frequencies (dict): Computed in advance frequencies for n-grams
         """
+        if not isinstance(frequencies, dict):
+            return None
+
+        self._n_gram_frequencies = frequencies
 
     def build(self) -> bool:
         """
