@@ -354,7 +354,7 @@ class NGramLanguageModel:
             frequencies (dict): Computed in advance frequencies for n-grams
         """
         if not isinstance(frequencies, dict):
-            return None
+            return
 
         self._n_gram_frequencies = frequencies
 
