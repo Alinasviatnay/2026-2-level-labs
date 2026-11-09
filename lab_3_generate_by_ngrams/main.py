@@ -158,7 +158,7 @@ class TextProcessor:
         an element is not added to storage
         """
         if not isinstance(element, str) or len(element) != 1:
-            return None
+            return
 
         if element not in self._storage:
             self._storage[element] = len(self._storage)
@@ -185,9 +185,10 @@ class TextProcessor:
             if not isinstance(el, int):
                 return None
         decoded_text = self._decode(encoded_corpus)
-        result = self._postprocess_decoded_text(decoded_text)
+        if decoded_text is None:
+            return None
 
-        return result
+        return self._postprocess_decoded_text(decoded_text)
 
     def fill_from_ngrams(self, content: dict) -> None:
         """
@@ -369,8 +370,8 @@ class NGramLanguageModel:
             ngram_counts[ngram] = ngram_counts.get(ngram, 0) + 1
             context_counts[ngram[:-1]] = context_counts.get(ngram[:-1], 0) + 1
 
-        for n_gram in ngram_counts:
-            self._n_gram_frequencies[n_gram] = ngram_counts[n_gram] / context_counts[n_gram[:-1]]
+        for n_gram, count in ngram_counts.items():
+            self._n_gram_frequencies[n_gram] = count / context_counts[n_gram[:-1]]
 
         return True
 
@@ -573,10 +574,13 @@ class BeamSearcher:
         """
         if (
             not isinstance(sequence, tuple)
-            or not isinstance(next_tokens, list)
-            or not isinstance(sequence_candidates, dict)
-            or not next_tokens
             or not sequence
+            or not isinstance(next_tokens, list)
+            or not next_tokens
+        ):
+            return None
+        if (
+            not isinstance(sequence_candidates, dict)
             or not sequence_candidates
             or len(next_tokens) > self._beam_width
             or sequence not in sequence_candidates
@@ -663,6 +667,10 @@ class BeamSearchTextGenerator:
             text_processor (TextProcessor): A TextProcessor instance to handle text processing
             beam_width (int): Beam width parameter for generation
         """
+        self._language_model = language_model
+        self._text_processor = text_processor
+        self._beam_width = beam_width
+        self.beam_searcher = BeamSearcher(beam_width, language_model)
 
     def run(self, prompt: str, seq_len: int) -> str | None:
         """
@@ -678,6 +686,36 @@ class BeamSearchTextGenerator:
         In case of corrupt input arguments or methods used return None,
         None is returned
         """
+        if not isinstance(prompt, str) or not prompt:
+            return None
+        if not isinstance(seq_len, int) or seq_len <= 0:
+            return None
+
+        encoded_prompt = self._text_processor.encode(prompt)
+        if encoded_prompt is None:
+            return None
+
+        candidates = {encoded_prompt: 0.0}
+
+        for _ in range(seq_len):
+            new_candidates = dict(candidates)
+            for sequence in candidates.keys():
+                next_tokens = self._get_next_token(sequence)
+                if next_tokens is None:
+                    return None
+                continued = self.beam_searcher.continue_sequence(sequence, next_tokens, new_candidates)
+                if continued is None:
+                    continue
+                new_candidates = continued
+
+            candidates = self.beam_searcher.prune_sequence_candidates(new_candidates)
+            if not candidates:
+                return None
+
+        best_sequence = min(candidates.items(), key=lambda item: item[1])[0]
+
+        return self._text_processor.decode(best_sequence)
+
 
     def _get_next_token(
         self, sequence_to_continue: tuple[int, ...]
@@ -694,7 +732,17 @@ class BeamSearchTextGenerator:
 
         In case of corrupt input arguments return None.
         """
+        if not isinstance(sequence_to_continue, tuple) or not sequence_to_continue:
+            return None
+        for el in sequence_to_continue:
+            if not isinstance(el, int):
+                return None
 
+        next_token = self.beam_searcher.get_next_token(sequence_to_continue)
+        if next_token is None:
+            return None
+
+        return next_token
 
 class NGramLanguageModelReader:
     """
