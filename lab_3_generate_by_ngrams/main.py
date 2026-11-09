@@ -710,9 +710,10 @@ class BeamSearchTextGenerator:
                     continue
                 new_candidates = continued
 
-            candidates = self.beam_searcher.prune_sequence_candidates(new_candidates)
-            if candidates is None:
+            pruned = self.beam_searcher.prune_sequence_candidates(new_candidates)
+            if pruned is None:
                 return None
+            candidates = pruned
 
         best_sequence = min(candidates.items(), key=lambda item: item[1])[0]
 
