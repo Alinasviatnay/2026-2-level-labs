@@ -699,17 +699,19 @@ class BeamSearchTextGenerator:
 
         for _ in range(seq_len):
             new_candidates = dict(candidates)
-            for sequence in candidates.keys():
+            for sequence in candidates:
                 next_tokens = self._get_next_token(sequence)
                 if next_tokens is None:
                     return None
-                continued = self.beam_searcher.continue_sequence(sequence, next_tokens, new_candidates)
+                continued = self.beam_searcher.continue_sequence(
+                    sequence, next_tokens, new_candidates
+                    )
                 if continued is None:
                     continue
                 new_candidates = continued
 
             candidates = self.beam_searcher.prune_sequence_candidates(new_candidates)
-            if not candidates:
+            if candidates is None:
                 return None
 
         best_sequence = min(candidates.items(), key=lambda item: item[1])[0]
