@@ -28,8 +28,10 @@ def main() -> None:
 
     processor = TextProcessor("_")
     encoded = processor.encode(text)
+    assert encoded is not None, "Text can not be encoded"
 
     decoded = processor.decode(encoded)
+    assert decoded is not None, "Text can not be decoded"
 
     print(f"Decoded example: {decoded[:200]} \nEncoded example: {encoded[:200]}")
 
@@ -53,9 +55,10 @@ def main() -> None:
     )
 
     backoff_models = [reader.load(n) for n in (2, 3, 4)]
+    backoff_models_clean = tuple(m for m in backoff_models if m is not None)
 
     backoff_processor = reader.get_text_processor()
-    backoff_generator = BackOffGenerator(tuple(backoff_models), backoff_processor)
+    backoff_generator = BackOffGenerator(backoff_models_clean, backoff_processor)
 
     backoff_generated_text = backoff_generator.run("Vernon", 100)
     result = backoff_generated_text
