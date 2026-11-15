@@ -841,7 +841,7 @@ class NGramLanguageModelReader:
         In case of corrupt input arguments or unexpected behaviour of methods used,
         None is returned.
         """
-        if not isinstance(n_gram_size, int) or not n_gram_size or n_gram_size < 2:
+        if not isinstance(n_gram_size, int) or n_gram_size < 2:
             return None
 
         freq = self._content.get("freq")
@@ -861,17 +861,9 @@ class NGramLanguageModelReader:
             if len(cleaned_n_gram) != n_gram_size:
                 continue
 
-            ids = []
-            for token in cleaned_n_gram:
-                token_id = self._text_processor.get_id(token)
-
-                if token_id is None:
-                    break
-
-                ids.append(token_id)
-            else:
-                key = tuple(ids)
-                ngram_counts[key] = ngram_counts.get(key, 0) + freq[n_gram]
+            ids = [self._text_processor.get_id(token) for token in cleaned_n_gram]
+            if None not in ids:
+                ngram_counts[tuple(ids)] = ngram_counts.get(tuple(ids), 0) + freq[n_gram]
 
         context_counts = {}
         for n_gram, count in ngram_counts.items():
