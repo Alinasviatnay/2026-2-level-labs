@@ -121,38 +121,6 @@ def main() -> None:
     result = backoff_generated
     assert result
 
-    word_processor = WordProcessor("<eos>")
-    encoded_words = word_processor.encode(text)
-
-    word_models = {}
-    for n in (2, 3, 4):
-        word_model = NGramLanguageModel(encoded_words, n)
-        built_word = word_model.build()
-        assert built_word, f"Failed to build word model n={n}"
-        word_models[n] = word_model
-
-    greedy_word_model = word_models[4]
-    greedy_word_generator = GreedyTextGenerator(greedy_word_model, word_processor)
-    greedy_word_text = greedy_word_generator.run("Harry looked at", 12)
-
-    beam_word_generator = BeamSearchTextGenerator(
-    greedy_word_model, word_processor, beam_width=3
-    )
-    beam_word_text = beam_word_generator.run("Harry looked at", 12)
-
-    backoff_word_generator = BackOffGenerator(
-    (word_models[2], word_models[3], word_models[4]), word_processor
-    )
-    backoff_word_text = backoff_word_generator.run("Harry looked at", 12)
-
-    letter_greedy_generator = GreedyTextGenerator(model, processor)
-    letter_greedy_text = letter_greedy_generator.run("Harry looked at", 60)
-    assert letter_greedy_text, "Letter greedy text is None"
-
-    print(f"Word-level greedy (n=4): {greedy_word_text}")
-    print(f"Word-level beam (n=4, width=3): {beam_word_text}")
-    print(f"Word-level BackOff (n=2,3,4): {backoff_word_text}")
-    print(f"Letter-level greedy (n=7): {letter_greedy_text}")
 
 if __name__ == "__main__":
     main()

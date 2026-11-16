@@ -283,7 +283,6 @@ class TextProcessor:
 
         return decoded_element.capitalize() + "."
 
-        return text + "."
 
 class WordProcessor(TextProcessor):
     """
@@ -385,15 +384,6 @@ class WordProcessor(TextProcessor):
 
         return f'{'. '.join(sentences)}.'
 
-        text = " ".join(decoded_corpus)
-        text = text.replace(f" {self._end_of_word_token}", ".")
-
-        sentences = text.split(". ")
-        text = ". ".join(s.capitalize() for s in sentences)
-        if not text.endswith("."):
-            text += "."
-
-        return text
 
 class NGramLanguageModel:
     """
@@ -534,15 +524,6 @@ class NGramLanguageModel:
 
         return tuple(n_grams)
 
-        if len(encoded_corpus) < self.__n_gram_size:
-            return None
-
-        ngrams = []
-        for i in range(len(encoded_corpus) - self.__n_gram_size + 1):
-            ngram = encoded_corpus[i:i+self.__n_gram_size]
-            ngrams.append(ngram)
-
-        return tuple(ngrams)
 
 class GreedyTextGenerator:
     """
@@ -598,29 +579,6 @@ class GreedyTextGenerator:
 
         return self._text_processor.decode(generated_sequence)
 
-        encoded_prompt = self._text_processor.encode(prompt)
-        if encoded_prompt is None:
-            return None
-
-        context_size = self._model.get_n_gram_size() - 1
-        if len(encoded_prompt) < context_size:
-            return None
-
-        current_sequence = list(encoded_prompt)
-
-        for _ in range(seq_len):
-            candidates = self._model.generate_next_token(tuple(current_sequence))
-            if not candidates:
-                break
-
-            best_token = max(
-                candidates.items(),
-                key=lambda x: (x[1], x[0])
-            )[0]
-
-            current_sequence.append(best_token)
-
-        return self._text_processor.decode(tuple(current_sequence))
 
 class BeamSearcher:
     """
@@ -743,15 +701,6 @@ class BeamSearcher:
 
         return dict(sorted_candidates[:self._beam_width])
 
-        sorted_items = sorted(
-        sequence_candidates.items(),
-        key=lambda x: (-x[1], x[0]),
-        reverse=True
-        )
-
-        top_items = sorted_items[:self._beam_width]
-
-        return dict(top_items)
 
 class BeamSearchTextGenerator:
     """
@@ -859,11 +808,6 @@ class BeamSearchTextGenerator:
         """
         return self.beam_searcher.get_next_token(sequence_to_continue)
 
-        next_token = self.beam_searcher.get_next_token(sequence_to_continue)
-        if next_token is None:
-            return None
-
-        return next_token
 
 class NGramLanguageModelReader:
     """
