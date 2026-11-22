@@ -4,7 +4,7 @@ TextRank summarizer starter
 
 # pylint:disable=unused-variable, unused-import, duplicate-code
 
-from lab_4_summarization_textrank.main import SentencePreprocessor, SentenceEncoder
+from lab_4_summarization_textrank.main import SentenceEncoder, SentencePreprocessor
 
 
 def main() -> None:

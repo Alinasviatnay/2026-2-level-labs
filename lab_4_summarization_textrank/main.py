@@ -47,6 +47,8 @@ class Sentence:
             text (str): Text of the sentence.
             position (int): Position of the sentence in the text.
         """
+        if not isinstance(text, str) or not isinstance(position, int):
+            raise IncorrectArgumentError("Incorrect input value")
         self._text = text
         self._position = position
         self._preprocessed = ()
