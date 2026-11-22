@@ -180,6 +180,10 @@ class SentencePreprocessor:
         Returns:
             str: String representation of the preprocessor.
         """
+        return (
+            f"SentencePreprocessor(stop_words={len(self._stop_words)}, "
+            f"punctuation={len(self._punctuation)})"
+        )
 
     def _clean_and_tokenize(self, text: str) -> tuple[str, ...]:
         """
@@ -209,6 +213,14 @@ class SentencePreprocessor:
         Args:
             sentences (Sequence[Sentence]): Sequence of sentences to preprocess.
         """
+        if not isinstance(sentences, Sequence):
+            raise IncorrectArgumentError("Incorrect input value")
+        for el in sentences:
+            if not isinstance(el, Sentence):
+                raise IncorrectArgumentError("Incorrect input value")
+
+        for sentence in sentences:
+            sentence.set_preprocessed(self.preprocess_text(sentence.get_text()))
 
     def _remove_stop_words(self, tokens: Sequence[str]) -> tuple[str, ...]:
         """
@@ -259,6 +271,13 @@ class SentencePreprocessor:
         Returns:
             tuple[Sentence, ...]: Sequence of preprocessed sentences extracted from the text.
         """
+        if not isinstance(text, str):
+            raise IncorrectArgumentError("Incorrect input value")
+
+        sentences = self._split_by_sentence(text)
+        self._preprocess_sentences(sentences)
+
+        return sentences
 
     def preprocess_text(self, text: str) -> tuple[str, ...]:
         """
@@ -289,6 +308,9 @@ class SentenceEncoder:
         """
         Initializes the sentence encoder.
         """
+        self._word2id = {}
+        self._id2word = {}
+        self.last = 999
 
     def __str__(self) -> str:
         """
@@ -297,6 +319,7 @@ class SentenceEncoder:
         Returns:
             str: String representation of the encoder.
         """
+        return f"SentenceEncoder(vocabulary_size={len(self._word2id)})"
 
     def _learn_indices(self, tokens: Sequence[str]) -> None:
         """
@@ -305,6 +328,17 @@ class SentenceEncoder:
         Args:
             tokens (Sequence[str]): Sequence of string tokens.
         """
+        if not isinstance(tokens, Sequence):
+            raise IncorrectArgumentError("Incorrect input value")
+        for token in tokens:
+            if not isinstance(token, str):
+                raise IncorrectArgumentError("Incorrect input value")
+
+        for token in tokens:
+            if token not in self._word2id:
+                self.last += 1
+                self._word2id[token] = self.last
+                self._id2word[self.last] = token
 
     def encode_sentences(self, sentences: Sequence[Sentence]) -> None:
         """
@@ -313,7 +347,16 @@ class SentenceEncoder:
         Args:
             sentences (Sequence[Sentence]): Sequence of sentences to encode.
         """
+        if not isinstance(sentences, Sequence):
+            raise IncorrectArgumentError("Incorrect input value")
+        for sentence in sentences:
+            if not isinstance(sentence, Sentence):
+                raise IncorrectArgumentError("Incorrect input value")
 
+        for sentence in sentences:
+            tokens = sentence.get_preprocessed()
+            self._learn_indices(tokens)
+            sentence.set_encoded(tuple(self._word2id[token] for token in tokens))
 
 def calculate_similarity(sequence: Sequence, other_sequence: Sequence) -> float:
     """
