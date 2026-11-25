@@ -51,8 +51,8 @@ class Sentence:
             raise IncorrectArgumentError("Incorrect input value")
         self._text = text
         self._position = position
-        self._preprocessed = ()
-        self._encoded = ()
+        self._preprocessed = tuple()
+        self._encoded = tuple()
 
     def __eq__(self, other: object) -> bool:
         """
@@ -482,10 +482,8 @@ class TextGraph:
         for sentence in sentences:
             self._add_vertex(sentence)
 
-        for i in range(len(sentences)):
-            for j in range(i + 1, len(sentences)):
-                sentence1 = sentences[i]
-                sentence2 = sentences[j]
+        for i, sentence1 in enumerate(sentences):
+            for sentence2 in sentences[i + 1:]:
                 if sentence1 != sentence2:
                     self._add_edge(sentence1, sentence2)
 
@@ -562,9 +560,9 @@ class TextGraph:
             raise TextGraphError("Graph is empty")
 
         scores = []
-        for i in range(len(self._vertices)):
+        for i, vertex in enumerate(self._vertices):
             score = sum(self._matrix[i])
-            scores.append((score, self._vertices[i]))
+            scores.append((score, vertex))
 
         sorted_pairs = sorted(scores, key=lambda x: x[0], reverse=True)
         top_sentences = sorted_pairs[:n]
