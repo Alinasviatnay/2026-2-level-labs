@@ -4,7 +4,12 @@ TextRank summarizer starter
 
 # pylint:disable=unused-variable, unused-import, duplicate-code
 
-from lab_4_summarization_textrank.main import SentenceEncoder, SentencePreprocessor
+from lab_4_summarization_textrank.main import (
+    NaiveSummarizer,
+    SentenceEncoder,
+    SentencePreprocessor,
+    TextGraph,
+)
 
 
 def main() -> None:
@@ -27,7 +32,11 @@ def main() -> None:
     sentence_encoder = SentenceEncoder()
     sentence_encoder.encode_sentences(sentences)
 
-    result = sentences
+    graph = TextGraph()
+    graph.build(sentences)
+    summarizer = NaiveSummarizer(graph)
+    result = summarizer.summarize(5)
+
     assert result
 
 
