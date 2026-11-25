@@ -542,7 +542,7 @@ class TextGraph:
         index1 = self._vertices.index(vertex1)
         index2 = self._vertices.index(vertex2)
 
-        return self._matrix[index1][index2]
+        return float(self._matrix[index1][index2])
 
     def get_top_n_sentences(self, n: int) -> tuple[Sentence, ...]:
         """
